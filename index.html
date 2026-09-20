@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Quiz Kingdom - 100 Categories Edition</title>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --secondary: #ec4899;
+      --accent: #f59e0b;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --bg-light: #334155;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    /* Top Navigation Bar */
+    .header-bar {
+      width: 100%;
+      max-width: 1100px;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #a855f7, #6366f1, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .user-stats {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .stat-badge {
+      background: var(--bg-light);
+      padding: 8px 14px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .stat-badge.points { color: #facc15; }
+    .stat-badge.stars { color: #f59e0b; }
+    .stat-badge.title { color: #38bdf8; }
+
+    .nav-btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-light);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    /* Main Container Views */
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .view {
+      display: none;
+      width: 100%;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Search & Filter Controls */
+    .controls-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 250px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 12px 18px;
+      border-radius: 12px;
+      color: white;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .filter-btn {
+      padding: 10px 16px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-sub);
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Grid Layout for Categories */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .cat-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cat-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--primary);
+      box-shadow: 0 12px 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .cat-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: var(--bg-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: #38bdf8;
+    }
+
+    .cat-title {
+      font-weight: 800;
+      font-size: 1.1rem;
+      line-height: 1.3;
+    }
+
+    .cat-meta {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Stage Selection View */
+    .stage-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .stage-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+    }
+
+    .stage-card.locked {
+      opacity: 0.5;
+      filter: grayscale(0.8);
+    }
+
+    .stage-number {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    .stage-stars {
+      color: #f59e0b;
+      font-size: 1.2rem;
+      display: flex;
+      gap: 4px;
+    }
+
+    /* Gameplay Screen */
+    .quiz-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 32px;
+      max-width: 700px;
+      margin: 0 auto;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+    }
+
+    .quiz-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-light);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .quiz-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      width: 100%;
+      transition: width 0.1s linear;
+    }
+
+    .subject-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: #0284c7;
+      color: white;
+    }
+
+    .quiz-question {
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin-bottom: 24px;
+      line-height: 1.4;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .option-btn {
+      background: var(--bg-light);
+      border: 2px solid transparent;
+      padding: 16px 20px;
+      border-radius: 12px;
+      color: white;
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .option-btn:hover {
+      border-color: var(--primary);
+      background: #3e4c5e;
+    }
+
+    .option-btn.correct {
+      background: #065f46 !important;
+      border-color: var(--success) !important;
+    }
+
+    .option-btn.wrong {
+      background: #991b1b !important;
+      border-color: var(--danger) !important;
+    }
+
+    .game-items-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+
+    .item-use-btn {
+      background: var(--bg-light);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Modal / Shop / Titles */
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .shop-item {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .shake {
+      animation: shake 0.4s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <div class="header-bar">
+    <div class="logo" onclick="showView('category-view')">
+      <i class="fa-solid fa-crown"></i> SUPER QUIZ KINGDOM
+    </div>
+    <div class="user-stats">
+      <div class="stat-badge title" id="equipped-title"><i class="fa-solid fa-award"></i> 초보 퀴즈러</div>
+      <div class="stat-badge stars"><i class="fa-solid fa-star"></i> <span id="total-stars">0</span></div>
+      <div class="stat-badge points"><i class="fa-solid fa-coins"></i> <span id="user-points">0</span>P</div>
+    </div>
+    <div class="nav-btns">
+      <button class="btn btn-secondary" onclick="showView('shop-view')"><i class="fa-solid fa-cart-shopping"></i> 상점</button>
+      <button class="btn btn-secondary" onclick="showView('title-view')"><i class="fa-solid fa-trophy"></i> 칭호</button>
+    </div>
+  </div>
+
+  <div class="container">
+    
+    <!-- 1. Category View -->
+    <div id="category-view" class="view active">
+      <div class="controls-bar">
+        <input type="text" id="search-bar" class="search-input" placeholder="퀴즈 카테고리 검색 (예: 초1, 유튜버, 철도)..." oninput="filterCategories()">
+        <button class="filter-btn active" onclick="setFilter('all', this)">전체 (100)</button>
+        <button class="filter-btn" onclick="setFilter('school', this)">학교/교과</button>
+        <button class="filter-btn" onclick="setFilter('trend', this)">트렌드/문화</button>
+        <button class="filter-btn" onclick="setFilter('hobby', this)">취미/전문</button>
+      </div>
+
+      <div class="category-grid" id="category-grid">
+        <!-- Dynamically rendered categories -->
+      </div>
+    </div>
+
+    <!-- 2. Stage Select View -->
+    <div id="stage-view" class="view">
+      <div class="stage-header">
+        <button class="btn btn-secondary" onclick="showView('category-view')"><i class="fa-solid fa-arrow-left"></i> 뒤로가기</button>
+        <h2 id="stage-cat-title">카테고리 이름</h2>
+      </div>
+      <div class="stage-grid" id="stage-grid">
+        <!-- Dynamically rendered stages -->
+      </div>
+    </div>
+
+    <!-- 3. Gameplay View -->
+    <div id="quiz-view" class="view">
+      <div class="quiz-card" id="quiz-card">
+        <div class="quiz-progress-bar">
+          <div class="quiz-progress-fill" id="timer-bar"></div>
+        </div>
+        <span class="subject-badge" id="subject-badge">과목</span>
+        <div style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 8px;" id="quiz-num">문제 1/5</div>
+        <div class="quiz-question" id="quiz-question">퀴즈 질문이 들어갑니다.</div>
+
+        <div class="options-grid" id="options-grid">
+          <!-- Dynamically rendered options -->
+        </div>
+
+        <div class="game-items-bar">
+          <button class="item-use-btn" onclick="useItem('time')"><i class="fa-solid fa-clock"></i> 시간+10s (<span id="item-time-cnt">0</span>)</button>
+          <button class="item-use-btn" onclick="useItem('hint')"><i class="fa-solid fa-lightbulb"></i> 힌트 (<span id="item-hint-cnt">0</span>)</button>
+          <button class="item-use-btn" onclick="useItem('double')"><i class="fa-solid fa-bolt"></i> 점수2배 (<span id="item-double-cnt">0</span>)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Result View -->
+    <div id="result-view" class="view">
+      <div class="quiz-card" style="text-align: center;">
+        <h2 style="font-size: 2rem; margin-bottom: 12px;" id="result-title">STAGE CLEAR!</h2>
+        <div id="result-stars" style="font-size: 2.5rem; color: #f59e0b; margin-bottom: 16px;">
+          <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+        </div>
+        <p style="font-size: 1.2rem; margin-bottom: 8px;">획득 점수: <span id="result-score" style="color:#facc15; font-weight:800;">0</span> 점</p>
+        <p style="font-size: 1rem; color: var(--text-sub); margin-bottom: 24px;">정답률: <span id="result-acc">0</span>%</p>
+        <button class="btn" style="margin: 0 auto;" onclick="showView('stage-view')">스테이지 목록으로</button>
+      </div>
+    </div>
+
+    <!-- 5. Shop View -->
+    <div id="shop-view" class="view">
+      <div class="stage-header">
+        <button class="btn btn-secondary" onclick="showView('category-view')"><i class="fa-solid fa-arrow-left"></i> 메인으로</button>
+        <h2>포인트 아이템 상점</h2>
+      </div>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <h3><i class="fa-solid fa-clock" style="color:#38bdf8;"></i> 시간 연장 (+10초)</h3>
+          <p style="color: var(--text-sub); font-size: 0.9rem;">퀴즈 타이머 제한 시간을 10초 늘려줍니다.</p>
+          <button class="btn" onclick="buyItem('time', 100)">100 P 구매</button>
+        </div>
+        <div class="shop-item">
+          <h3><i class="fa-solid fa-lightbulb" style="color:#facc15;"></i> 힌트 아이템</h3>
+          <p style="color: var(--text-sub); font-size: 0.9rem;">정답에 대한 힌트를 즉시 확인할 수 있습니다.</p>
+          <button class="btn" onclick="buyItem('hint', 150)">150 P 구매</button>
+        </div>
+        <div class="shop-item">
+          <h3><i class="fa-solid fa-bolt" style="color:#ec4899;"></i> 점수 2배 버프</h3>
+          <p style="color: var(--text-sub); font-size: 0.9rem;">해당 문제 정답 시 점수를 2배로 획득합니다.</p>
+          <button class="btn" onclick="buyItem('double', 200)">200 P 구매</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Titles View -->
+    <div id="title-view" class="view">
+      <div class="stage-header">
+        <button class="btn btn-secondary" onclick="showView('category-view')"><i class="fa-solid fa-arrow-left"></i> 메인으로</button>
+        <h2>보유 칭호 보관함</h2>
+      </div>
+      <div class="shop-grid" id="titles-grid">
+        <!-- Dynamically rendered titles -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ===================================================
+       1. GAME DATA & STATE MANAGEMENT
+    =================================================== */
+    let gameState = {
+      points: 100,
+      stars: 0,
+      equippedTitle: "초보 퀴즈러",
+      unlockedTitles: ["초보 퀴즈러"],
+      inventory: { time: 2, hint: 2, double: 1 },
+      stageProgress: {}
+    };
+
+    // Load LocalStorage
+    if (localStorage.getItem('quiz_kingdom_state')) {
+      try {
+        gameState = JSON.parse(localStorage.getItem('quiz_kingdom_state'));
+      } catch(e){}
+    }
+
+    function saveState() {
+      localStorage.setItem('quiz_kingdom_state', JSON.stringify(gameState));
+      updateHeaderUI();
+    }
+
+    // Audio SFX Generator (Web Audio API)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'correct') {
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'wrong') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(140, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+      }
+    }
+
+    /* Generator for 100 Categories */
+    const categories = [];
+    const subjects = ["수학", "국어", "영어"];
+    
+    // Academic (Grade 1 to 12)
+    const grades = ["초등 1학년", "초등 2학년", "초등 3학년", "초등 4학년", "초등 5학년", "초등 6학년", "중학교 1학년", "중학교 2학년", "중학교 3학년", "고등학교 1학년", "고등학교 2학년", "고등학교 3학년"];
+    grades.forEach((g, idx) => {
+      subjects.forEach(sub => {
+        categories.push({
+          id: `grade_${idx}_${sub}`,
+          title: `${g} [${sub}]`,
+          icon: sub === "수학" ? "fa-calculator" : sub === "국어" ? "fa-book" : "fa-language",
+          type: "school",
+          subject: sub
+        });
+      });
+    });
+
+    // Pop & Trend
+    const trends = [
+      { name: "유튜버 / 크리에이터", icon: "fa-youtube" }, { name: "정치인 & 역사 리더", icon: "fa-landmark" },
+      { name: "철도 & 지하철", icon: "fa-train-subway" }, { name: "아이돌 / K-POP", icon: "fa-music" },
+      { name: "애니 & 웹툰", icon: "fa-tv" }, { name: "게임 & 이스포츠", icon: "fa-gamepad" },
+      { name: "신조어 & 밈", icon: "fa-comments" }, { name: "영화 & OTT", icon: "fa-film" }
+    ];
+    trends.forEach(t => categories.push({ id: t.name, title: t.name, icon: t.icon, type: "trend", subject: "일반" }));
+
+    // General & Hobbies (Fill up to 100 categories)
+    const hobbies = [
+      "세계 수도", "세계 역사", "음식 & 맛집", "스포츠 & 축구", "동물 & 자연", "과학 & 우주", "자동차 & 탈것",
+      "속담 & 사자성어", "IT & 코딩", "클래식 음악", "미술 & 명화", "경제 & 주식", "보드게임", "패션 & 브랜드",
+      "군사 & 무기", "환경 & 생태", "미스터리 & 신화", "건강 & 의학", "법률 상식", "한국사", "건축 & 유산",
+      "추억의 가요", "세계 요리", "천문학", "기초 철학", "물리학", "화학", "생명과학", "지구과학", "심리학",
+      "마케팅", "사진 & 카메라", "캠핑 & 등산", "커피 & 음료", "세계 문화", "공룡", "바다 생물", "인공지능", "로봇"
+    ];
+    hobbies.forEach(h => categories.push({ id: h, title: h, icon: "fa-brain", type: "hobby", subject: "상식" }));
+
+    /* Demo Quiz Generator Logic */
+    function generateStageQuestions(cat, stageNum) {
+      const qs = [];
+      for (let i = 1; i <= 5; i++) {
+        let questionText = `${cat.title} (Stage ${stageNum}) ${i}번 문제입니다.`;
+        let options = ["정답 옵션", "오답 A", "오답 B", "오답 C"];
+        
+        if (cat.subject === "수학") {
+          const a = stageNum * 7 + i;
+          const b = stageNum * 3 + i;
+          questionText = `다음 연산의 값은? : ${a} + ${b} = ?`;
+          options = [`${a + b}`, `${a + b + 2}`, `${a + b - 3}`, `${a * b}`];
+        } else if (cat.subject === "국어") {
+          questionText = `다음 중 올바른 맞춤법은 무엇일까요? (${stageNum}단계)`;
+          options = ["되어라", "되어라", "되라", "돼라"];
+        } else if (cat.subject === "영어") {
+          questionText = `다음 중 '사과'를 의미하는 영단어는?`;
+          options = ["Apple", "Banana", "Cat", "Dog"];
+        }
+
+        qs.push({
+          question: questionText,
+          options: options.sort(() => Math.random() - 0.5),
+          answer: options[0],
+          hint: "첫 번째 선택지가 올바른 정답의 가이드입니다."
+        });
+      }
+      return qs;
+    }
+
+    /* ===================================================
+       2. UI & VIEW CONTROLLER
+    =================================================== */
+    let currentFilter = 'all';
+    let currentCat = null;
+    let currentStage = 1;
+    let currentQuestions = [];
+    let currentQIdx = 0;
+    let stageScore = 0;
+    let correctCount = 0;
+    let timerInterval = null;
+    let activeMultiplier = 1;
+
+    function updateHeaderUI() {
+      document.getElementById('user-points').innerText = gameState.points;
+      document.getElementById('total-stars').innerText = gameState.stars;
+      document.getElementById('equipped-title').innerText = gameState.equippedTitle;
+      document.getElementById('item-time-cnt').innerText = gameState.inventory.time;
+      document.getElementById('item-hint-cnt').innerText = gameState.inventory.hint;
+      document.getElementById('item-double-cnt').innerText = gameState.inventory.double;
+    }
+
+    function showView(viewId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+      if (viewId === 'category-view') renderCategories();
+      if (viewId === 'title-view') renderTitles();
+      updateHeaderUI();
+    }
+
+    function setFilter(type, btn) {
+      currentFilter = type;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderCategories();
+    }
+
+    function filterCategories() {
+      renderCategories();
+    }
+
+    function renderCategories() {
+      const grid = document.getElementById('category-grid');
+      const search = document.getElementById('search-bar').value.toLowerCase();
+      grid.innerHTML = '';
+
+      categories.filter(c => {
+        const matchesFilter = (currentFilter === 'all') || (c.type === currentFilter);
+        const matchesSearch = c.title.toLowerCase().includes(search);
+        return matchesFilter && matchesSearch;
+      }).forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'cat-card';
+        card.onclick = () => selectCategory(c);
+        card.innerHTML = `
+          <div class="cat-icon"><i class="fa-solid ${c.icon}"></i></div>
+          <div class="cat-title">${c.title}</div>
+          <div class="cat-meta"><span>Stage 1~4</span></div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function selectCategory(cat) {
+      currentCat = cat;
+      document.getElementById('stage-cat-title').innerText = cat.title;
+      renderStages();
+      showView('stage-view');
+    }
+
+    function renderStages() {
+      const grid = document.getElementById('stage-grid');
+      grid.innerHTML = '';
+
+      for (let s = 1; s <= 4; s++) {
+        const key = `${currentCat.id}_s${s}`;
+        const unlocked = s === 1 || (gameState.stageProgress[`${currentCat.id}_s${s-1}`]?.stars > 0);
+        const stars = gameState.stageProgress[key]?.stars || 0;
+
+        const card = document.createElement('div');
+        card.className = `stage-card ${unlocked ? '' : 'locked'}`;
+        card.onclick = () => { if (unlocked) startStage(s); };
+        card.innerHTML = `
+          <div class="stage-number">STAGE ${s}</div>
+          <div class="stage-stars">
+            ${'<i class="fa-solid fa-star"></i>'.repeat(stars)}
+            ${'<i class="fa-regular fa-star"></i>'.repeat(3 - stars)}
+          </div>
+          <div>${unlocked ? '도전 가능' : '<i class="fa-solid fa-lock"></i> 잠김'}</div>
+        `;
+        grid.appendChild(card);
+      }
+    }
+
+    /* ===================================================
+       3. GAMEPLAY ENGINE
+    =================================================== */
+    function startStage(stageNum) {
+      currentStage = stageNum;
+      currentQuestions = generateStageQuestions(currentCat, stageNum);
+      currentQIdx = 0;
+      stageScore = 0;
+      correctCount = 0;
+      showView('quiz-view');
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      if (currentQIdx >= currentQuestions.length) {
+        endStage();
+        return;
+      }
+
+      const q = currentQuestions[currentQIdx];
+      document.getElementById('subject-badge').innerText = currentCat.subject || "일반";
+      document.getElementById('quiz-num').innerText = `문제 ${currentQIdx + 1} / ${currentQuestions.length}`;
+      document.getElementById('quiz-question').innerText = q.question;
+
+      const optionsGrid = document.getElementById('options-grid');
+      optionsGrid.innerHTML = '';
+
+      q.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(opt, q.answer, btn);
+        optionsGrid.appendChild(btn);
+      });
+
+      startTimer();
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      const timerBar = document.getElementById('timer-bar');
+      let timePercent = 100;
+      
+      timerInterval = setInterval(() => {
+        timePercent -= 1;
+        timerBar.style.width = timePercent + '%';
+        if (timePercent <= 0) {
+          clearInterval(timerInterval);
+          playSound('wrong');
+          nextQuestion();
+        }
+      }, 150);
+    }
+
+    function checkAnswer(selected, correct, btn) {
+      clearInterval(timerInterval);
+      const isCorrect = selected === correct;
+
+      if (isCorrect) {
+        btn.classList.add('correct');
+        playSound('correct');
+        stageScore += 100 * activeMultiplier;
+        correctCount++;
+        confetti({ particleCount: 30, spread: 60, origin: { y: 0.8 } });
+      } else {
+        btn.classList.add('wrong');
+        document.getElementById('quiz-card').classList.add('shake');
+        setTimeout(() => document.getElementById('quiz-card').classList.remove('shake'), 400);
+        playSound('wrong');
+      }
+
+      activeMultiplier = 1;
+      setTimeout(nextQuestion, 1000);
+    }
+
+    function nextQuestion() {
+      currentQIdx++;
+      loadQuestion();
+    }
+
+    function useItem(type) {
+      if (gameState.inventory[type] <= 0) {
+        alert("아이템이 부족합니다! 상점에서 구매하세요.");
+        return;
+      }
+      gameState.inventory[type]--;
+      if (type === 'time') {
+        startTimer(); // Reset timer
+      } else if (type === 'hint') {
+        alert("힌트: " + currentQuestions[currentQIdx].hint);
+      } else if (type === 'double') {
+        activeMultiplier = 2;
+        alert("이번 문제 정답 점수가 2배가 됩니다!");
+      }
+      saveState();
+    }
+
+    function endStage() {
+      const accuracy = (correctCount / currentQuestions.length) * 100;
+      let earnedStars = 0;
+      if (accuracy >= 100) earnedStars = 3;
+      else if (accuracy >= 60) earnedStars = 2;
+      else if (accuracy >= 40) earnedStars = 1;
+
+      const key = `${currentCat.id}_s${currentStage}`;
+      const prevStars = gameState.stageProgress[key]?.stars || 0;
+      
+      if (earnedStars > prevStars) {
+        gameState.stars += (earnedStars - prevStars);
+        gameState.stageProgress[key] = { stars: earnedStars };
+      }
+
+      gameState.points += stageScore;
+      saveState();
+
+      document.getElementById('result-title').innerText = earnedStars > 0 ? "STAGE CLEAR!" : "STAGE FAILED";
+      document.getElementById('result-stars').innerHTML = '<i class="fa-solid fa-star"></i>'.repeat(earnedStars);
+      document.getElementById('result-score').innerText = stageScore;
+      document.getElementById('result-acc').innerText = accuracy.toFixed(0);
+
+      showView('result-view');
+    }
+
+    /* ===================================================
+       4. SHOP & TITLES SYSTEM
+    =================================================== */
+    function buyItem(type, price) {
+      if (gameState.points < price) {
+        alert("포인트가 부족합니다!");
+        return;
+      }
+      gameState.points -= price;
+      gameState.inventory[type]++;
+      saveState();
+      alert("구매 완료!");
+    }
+
+    const availableTitles = [
+      "초보 퀴즈러", "지식 탐험가", "스피드 마스터", "퀴즈 왕국의 지배자", "퀴즈 재벌"
+    ];
+
+    function renderTitles() {
+      const grid = document.getElementById('titles-grid');
+      grid.innerHTML = '';
+
+      availableTitles.forEach(t => {
+        const isUnlocked = gameState.unlockedTitles.includes(t);
+        const isEquipped = gameState.equippedTitle === t;
+
+        const card = document.createElement('div');
+        card.className = 'shop-item';
+        card.innerHTML = `
+          <h3><i class="fa-solid fa-award" style="color:#38bdf8;"></i> ${t}</h3>
+          <p style="color:var(--text-sub);">${isUnlocked ? '해금 완료' : '업적 달성 필요'}</p>
+          <button class="btn ${isEquipped ? 'btn-secondary' : ''}" onclick="equipTitle('${t}')" ${!isUnlocked ? 'disabled' : ''}>
+            ${isEquipped ? '장착 중' : '장착하기'}
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function equipTitle(title) {
+      gameState.equippedTitle = title;
+      saveState();
+      renderTitles();
+    }
+
+    // Initialize App
+    renderCategories();
+    updateHeaderUI();
+  </script>
+</body>
+</html>
