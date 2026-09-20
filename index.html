@@ -408,6 +408,26 @@
       gap: 10px;
     }
 
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-box {
+      background: var(--bg-card);
+      padding: 24px;
+      border-radius: var(--radius);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
     .shake {
       animation: shake 0.4s ease-in-out;
     }
@@ -440,16 +460,14 @@
     <!-- Category View -->
     <div id="category-view" class="view active">
       <div class="controls-bar">
-        <input type="text" id="search-bar" class="search-input" placeholder="퀴즈 카테고리 검색 (예: 초1, 수학, 역사)..." oninput="filterCategories()">
+        <input type="text" id="search-bar" class="search-input" placeholder="퀴즈 카테고리 검색 (예: 초1, 수학, K-POP, 우주)..." oninput="filterCategories()">
         <button class="filter-btn active" onclick="setFilter('all', this)">전체</button>
         <button class="filter-btn" onclick="setFilter('school', this)">학교/교과</button>
         <button class="filter-btn" onclick="setFilter('trend', this)">트렌드/문화</button>
         <button class="filter-btn" onclick="setFilter('hobby', this)">취미/상식</button>
       </div>
 
-      <div class="category-grid" id="category-grid">
-        <!-- Dynamically rendered categories -->
-      </div>
+      <div class="category-grid" id="category-grid"></div>
     </div>
 
     <!-- Stage View -->
@@ -458,9 +476,7 @@
         <button class="btn btn-secondary" onclick="showView('category-view')"><i class="fa-solid fa-arrow-left"></i> 뒤로가기</button>
         <h2 id="stage-cat-title">카테고리 이름</h2>
       </div>
-      <div class="stage-grid" id="stage-grid">
-        <!-- Dynamically rendered stages -->
-      </div>
+      <div class="stage-grid" id="stage-grid"></div>
     </div>
 
     <!-- Quiz View -->
@@ -473,9 +489,7 @@
         <div style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 8px;" id="quiz-num">문제 1/5</div>
         <div class="quiz-question" id="quiz-question">퀴즈 질문이 들어갑니다.</div>
 
-        <div class="options-grid" id="options-grid">
-          <!-- Dynamically rendered options -->
-        </div>
+        <div class="options-grid" id="options-grid"></div>
 
         <div class="game-items-bar">
           <button class="item-use-btn" onclick="useItem('time')"><i class="fa-solid fa-clock"></i> 시간+10s (<span id="item-time-cnt">0</span>)</button>
@@ -529,13 +543,27 @@
         <button class="btn btn-secondary" onclick="showView('category-view')"><i class="fa-solid fa-arrow-left"></i> 메인으로</button>
         <h2>보유 칭호 보관함</h2>
       </div>
-      <div class="shop-grid" id="titles-grid">
-        <!-- Dynamically rendered titles -->
-      </div>
+      <div class="shop-grid" id="titles-grid"></div>
+    </div>
+  </div>
+
+  <!-- Modal Component for System Messages (Replacing alert) -->
+  <div class="modal-overlay" id="custom-modal">
+    <div class="modal-box">
+      <h3 id="modal-msg" style="margin-bottom: 20px; line-height: 1.5;">메시지</h3>
+      <button class="btn" style="margin: 0 auto;" onclick="closeModal()">확인</button>
     </div>
   </div>
 
   <script>
+    function showModal(msg) {
+      document.getElementById('modal-msg').innerText = msg;
+      document.getElementById('custom-modal').style.display = 'flex';
+    }
+    function closeModal() {
+      document.getElementById('custom-modal').style.display = 'none';
+    }
+
     let gameState = {
       points: 100,
       stars: 0,
@@ -546,9 +574,7 @@
     };
 
     if (localStorage.getItem('quiz_kingdom_state')) {
-      try {
-        gameState = JSON.parse(localStorage.getItem('quiz_kingdom_state'));
-      } catch(e){}
+      try { gameState = JSON.parse(localStorage.getItem('quiz_kingdom_state')); } catch(e){}
     }
 
     function saveState() {
@@ -565,8 +591,8 @@
       gain.connect(audioCtx.destination);
 
       if (type === 'correct') {
-        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
@@ -579,6 +605,140 @@
         osc.start(); osc.stop(audioCtx.currentTime + 0.4);
       }
     }
+
+    // Comprehensive Quiz Database for Trend and Hobby categories
+    const knowledgeDB = {
+      "유튜버 / 크리에이터": [
+        { q: "대한민국 최초로 구독자 1000만 명을 돌파한 보람튜브의 주요 콘텐츠 분야는?", ans: "키즈/일상", wrong: ["게임", "요리", "음악"] },
+        { q: "유튜브에서 1,000,000(100만) 구독자를 달성했을 때 지급되는 버튼의 명칭은?", ans: "골드 버튼", wrong: ["실버 버튼", "다이아몬드 버튼", "루비 버튼"] },
+        { q: "과학 연출 및 실험을 재미있게 다루는 인기 유투버 채널 이름은?", ans: "사물궁이 잡학사전", wrong: ["피지컬갤러리", "워크맨", "침착맨"] },
+        { q: "세계에서 가장 많은 구독자를 보유한 개인 크리에이터 미스터비스트(MrBeast)의 본명은?", ans: "지미 도널드슨", wrong: ["퓨디파이", "로건 폴", "마키플라이어"] },
+        { q: "웹예능 '문명특급'의 메인 진행자로 유명한 크리에이터는?", ans: "재재", wrong: ["풍자", "곽튜브", "빠니보틀"] }
+      ],
+      "정치인 & 역사 리더": [
+        { q: "조선 시대 한글(훈민정음)을 창제한 임금은?", ans: "세종대왕", wrong: ["정조", "태종", "영조"] },
+        { q: "미국의 제1대 대통령으로 초상화가 1달러 지폐에 그려진 인물은?", ans: "조지 워싱턴", wrong: ["에이브러햄 링컨", "토머스 제퍼슨", "벤저민 프랭클린"] },
+        { q: "임진왜란 당시 한산도 대첩 및 명량 대첩을 이끈 조선의 장군은?", ans: "이순신", wrong: ["강감찬", "김유신", "을지문덕"] },
+        { q: "고려를 건국하고 삼국을 통일한 왕은?", ans: "태조 왕건", wrong: ["경순왕", "대조영", "궁예"] },
+        { q: "프랑스의 영웅으로 불리며 파리 시내에 '나폴레옹 관'이 위치한 역사적 인물은?", ans: "나폴레옹 보나파르트", wrong: ["잔다르크", "루이 14세", "샤를마뉴"] }
+      ],
+      "철도 & 지하철": [
+        { q: "대한민국 수도권 지하철 노선 중 순환선으로 운행되는 노선은?", ans: "2호선", wrong: ["1호선", "3호선", "4호선"] },
+        { q: "한국에서 가장 빠른 고속열차 브랜드 중 하나로 KTX의 뜻은?", ans: "Korea Train Express", wrong: ["Korea Total Express", "Kyungbi Train Express", "Korea Transport Express"] },
+        { q: "세계에서 가장 긴 유라시아 시베리아 횡단 철도의 출발점이자 종착역 중 하나는?", ans: "블라디보스토크", wrong: ["모스크바", "베이징", "하바롭스크"] },
+        { q: "수도권 광역급행철도를 뜻하는 최근 철도 교통의 핵심 약어는?", ans: "GTX", wrong: ["SRT", "ITX", "KTX"] },
+        { q: "지하철 승차 시 교통카드를 대는 기기의 정식 명칭은?", ans: "개집표기 (게이트)", wrong: ["환승기", "발권기", "정산기"] }
+      ],
+      "아이돌 / K-POP": [
+        { q: "'Dynamite', 'Butter' 등의 히트곡으로 빌보드 HOT 100 1위를 한 그룹은?", ans: "방탄소년단 (BTS)", wrong: ["세븐틴", "EXO", "NCT"] },
+        { q: "하이브(HYBE) 산하 레이블의 걸그룹으로 'Hype Boy', 'Super Shy'를 부른 팀은?", ans: "뉴진스 (NewJeans)", wrong: ["아이브", "르세라핌", "에스파"] },
+        { q: "SM엔터테인먼트의 세계관인 'KWANGYA(광야)'와 메타버스 콘셉트를 가진 걸그룹은?", ans: "에스파 (aespa)", wrong: ["Red Velvet", "ITZY", "STAYC"] },
+        { q: "K-POP 기획사 중 JYP엔터테인먼트의 수석 프로듀서 겸 수장은?", ans: "박진영", wrong: ["양현석", "방시혁", "유희열"] },
+        { q: "'LOVE DIVE', 'I AM' 등의 곡으로 대상을 수상한 스타쉽 소속 걸그룹은?", ans: "아이브 (IVE)", wrong: ["엔믹스", "케플러", "아이들"] }
+      ],
+      "애니 & 웹툰": [
+        { q: "귀살대 대원 탄지로가 동생 네즈코를 인간으로 돌리기 위해 싸우는 애니는?", ans: "귀멸의 칼날", wrong: ["주술회전", "진격의 거인", "원피스"] },
+        { q: "네이버웹툰 최고 인기작 중 하나로 성진우가 '군주'로 성장하는 판타지물은?", ans: "나 혼자만 레벨업", wrong: ["신의 탑", "외모지상주의", "호랑이형님"] },
+        { q: "해적왕이 되기 위해 루피와 동료들이 보물 '원피스'를 찾아 떠나는 애니는?", ans: "원피스", wrong: ["나루토", "블리치", "드래곤볼"] },
+        { q: "스튜디오 지브리의 대표작으로 행방불명된 부모를 구하는 치히로의 이야기 애니는?", ans: "센과 치히로의 행방불명", wrong: ["하울의 움직이는 성", "이웃집 토토로", "마녀 배달부 키키"] },
+        { q: "명탐정 코난에서 코난의 본명(고등학생 탐정)은?", ans: "남도일 (쿠도 신이치)", wrong: ["괴도키드", "하인성", "안기준"] }
+      ],
+      "게임 & 이스포츠": [
+        { q: "리그 오브 레전드(LoL) 프로게이머로 월드 챔피언십 4회 이상 우승한 전설적인 선수는?", ans: "Faker (이상혁)", wrong: ["Chovy", "ShowMaker", "Deft"] },
+        { q: "블록을 배치하고 건설하며 생존하는 세계적인 샌드박스 게임은?", ans: "마인크래프트", wrong: ["로블록스", "테라리아", "레고 블록"] },
+        { q: "크래프톤이 개발하여 100인의 플레이어가 생존 경쟁을 벌이는 배틀로얄 게임은?", ans: "배틀그라운드 (PUBG)", wrong: ["포트나이트", "에이펙스 레전드", "오버워치"] },
+        { q: "닌텐도의 대표 캐릭터로 버섯 왕국을 구하기 위해 모험을 떠나는 배관공은?", ans: "마리오", wrong: ["링크", "동키콩", "요시"] },
+        { q: "최대 10명의 플레이어가 크루원과 임포스터로 나뉘어 속이고 찾는 심리 게임은?", ans: "어몽 어스 (Among Us)", wrong: ["폴가이즈", "마피아42", "구스구스덕"] }
+      ],
+      "신조어 & 밈": [
+        { q: "'중요한 것은 꺾이지 않는 마음'의 줄임말로 포기하지 않는 태도를 뜻하는 신조어는?", ans: "중꺾마", wrong: ["알잘딱깔센", "억까", "갓생"] },
+        { q: "'알아서 잘 딱 깔끔하고 센스있게'의 줄임말은?", ans: "알잘딱깔센", wrong: ["갓생", "점메추", "갓성비"] },
+        { q: "'부지런하고 성실하게 모범적인 삶을 사는 것'을 의미하는 신조어는?", ans: "갓생", wrong: ["욜로", "소확행", "TMI"] },
+        { q: "'억지로 까기'의 줄임말로 말도 안 되는 핑계로 비난할 때 쓰는 말은?", ans: "억까", wrong: ["억빠", "킹받네", "뇌절"] },
+        { q: "너무 화가 나거나 열받을 때 '왕'을 붙여 재미있게 표현하는 밈은?", ans: "킹받네", wrong: ["킹왕짱", "킹성비", "킹리적 갓심"] }
+      ],
+      "영화 & OTT": [
+        { q: "넷플릭스 세계적 히트작으로 456억 원의 상금을 두고 벌이는 잔혹한 게임 드라마는?", ans: "오징어 게임", wrong: ["더 글로리", "지금 우리 학교는", "스위트홈"] },
+        { q: "봉준호 감독 작품으로 아카데미 시상식 작품상을 수상한 한국 영화는?", ans: "기생충", wrong: ["설국열차", "괴물", "마더"] },
+        { q: "마블 유니버스(MCU)에서 '아이언맨' 역할을 연기한 배우는?", ans: "로버트 다우니 주니어", wrong: ["크리스 에반스", "크리스 헴스워스", "톰 홀랜드"] },
+        { q: "영화 '범죄도시' 시리즈에서 괴물형사 '마석도' 역할을 맡은 배우는?", ans: "마동석", wrong: ["윤계상", "손석구", "이준혁"] },
+        { q: "아바타 시리즈를 연출한 거장 감독으로 타이타닉을 연출하기도 한 인물은?", ans: "제임스 카메론", wrong: ["스티븐 스필버그", "크리스토퍼 놀란", "톰 크루즈"] }
+      ],
+      "세계 수도": [
+        { q: "프랑스의 수도는 어디일까요?", ans: "파리", wrong: ["리용", "마르세유", "니스"] },
+        { q: "일본의 수도는 어디일까요?", ans: "도쿄", wrong: ["오사카", "교토", "후쿠오카"] },
+        { q: "미국의 수도는 어디일까요?", ans: "와싱턴 D.C.", wrong: ["뉴욕", "로스앤젤레스", "시카고"] },
+        { q: "호주의 수도는 어디일까요?", ans: "캔버라", wrong: ["시드니", "멜버른", "브리즈번"] },
+        { q: "이탈리아의 수도는 어디일까요?", ans: "로마", wrong: ["밀라노", "베네치아", "피렌체"] },
+        { q: "캐나다의 수도는 어디일까요?", ans: "오타와", wrong: ["토론토", "밴쿠버", "몬트리올"] }
+      ],
+      "세계 역사": [
+        { q: "이집트 문명의 대표적인 신전이자 피라미드를 지킨 전설의 괴수는?", ans: "스핑크스", wrong: ["미노타우로스", "페가수스", "히드라"] },
+        { q: "고대 로마의 암살당한 장군으로 '브루투스 너마저'라는 명언으로 유명한 인물은?", ans: "율리우스 카이사르", wrong: ["아우구스투스", "네로", "콘스탄티누스"] },
+        { q: "14세기 유럽 전역을 공포에 떨게 한 감염병 '검은 죽음'의 명칭은?", ans: "흑사병", wrong: ["콜레라", "천연두", "스페인 독감"] },
+        { q: "1914년 제1차 세계 대전이 발발하게 된 계기가 된 사건은?", ans: "사라예보 사건", wrong: ["보스턴 차 사건", "워터루 전투", "노르망디 상륙작전"] }
+      ],
+      "음식 & 맛집": [
+        { q: "이탈리아의 대표적인 면 요리로 토마토, 크림, 알리오 올리오 등이 있는 음식은?", ans: "파스타", wrong: ["리소토", "피자", "라자냐"] },
+        { q: "한국 전통 찌개 중 푹 익은 김치와 돼지고기를 넣고 끓여먹는 대표 음식은?", ans: "김치찌개", wrong: ["된장찌개", "순두부찌개", "부대찌개"] },
+        { q: "멕시코의 전통 요리로 또르띠아에 고기와 채소를 싸서 먹는 음식은?", ans: "타코", wrong: ["브리또", "퀘사디아", "나초"] },
+        { q: "일본의 전통 요리로 식초로 간을 한 밥 위에 신선한 생선을 올린 음식은?", ans: "초밥 (스시)", wrong: ["라멘", "돈카츠", "우동"] }
+      ],
+      "스포츠 & 축구": [
+        { q: "축구 경기에서 한 선수가 한 경기에 3골 이상을 넣는 것을 무엇이라 하나요?", ans: "해트트릭", wrong: ["멀티골", "클린시트", "자책골"] },
+        { q: "손흥민 선수가 활약하는 영국의 프로 축구 리그 명칭은?", ans: "프리미어리그 (EPL)", wrong: ["라리가", "분데스리가", "세리에 A"] },
+        { q: "올림픽 상징인 오륜기의 5개 고리가 의미하는 것은?", ans: "세계 5대륙", wrong: ["5개 종목", "5대 경기장", "5개 평화원칙"] },
+        { q: "농구에서 공을 가지고 3걸음 이상 걷는 반칙은?", ans: "트래블링", wrong: ["파울", "더블 드블", "라인 cross"] }
+      ],
+      "동물 & 자연": [
+        { q: "지상에서 가장 키가 큰 동물로 목이 매우 길 특징을 가진 동물은?", ans: "기린", wrong: ["코끼리", "하마", "얼룩말"] },
+        { q: "지구상에서 가장 큰 바다 동물로 알려진 대형 포유류는?", ans: "대왕고래 (푸른바다고래)", wrong: ["향유고래", "백상아리", "범고래"] },
+        { q: "남극에 주로 살며 날지 못하지만 수영을 잘하는 새 종류는?", ans: "펭귄", wrong: ["갈매기", "타조", "알바트로스"] },
+        { q: "카멜레온이 몸의 색깔을 바꾸는 가장 주요한 이유는?", ans: "체온 조절 및 감정 표현", wrong: ["사냥감 유인", "시력 향상", "비행 준비"] }
+      ],
+      "과학 & 우주": [
+        { q: "태양계의 8개 행성 중 태양에서 가장 가까운 행성은?", ans: "수성", wrong: ["금성", "지구", "화성"] },
+        { q: "아인슈타인이 발표한 저명한 물리 이론은?", ans: "상대성 이론", wrong: ["만유인력 법칙", "양자역학", "진화론"] },
+        { q: "빛의 속도는 초당 약 몇 km 일까요?", ans: "약 30만 km", wrong: ["약 10만 km", "약 50만 km", "약 100만 km"] },
+        { q: "지구의 자전으로 인해 나타나는 현상은?", ans: "낮과 밤의 반복", wrong: ["계절의 변화", "조석 간만의 차", "일식"] }
+      ],
+      "자동차 & 탈것": [
+        { q: "전기자동차 전문 제조기업으로 모델 3, 모델 Y 등을 판매하는 기업은?", ans: "테슬라 (Tesla)", wrong: ["현대자동차", "포르쉐", "BMW"] },
+        { q: "하이브리드 자동차(Hybrid)의 뜻은?", ans: "내연기관과 전기모터를 함께 사용", wrong: ["수소만 사용", "수동 변속기만 사용", "100% 태양열"] },
+        { q: "독일의 3대 명차 브랜드에 포함되지 않는 브랜드는?", ans: "페라리", wrong: ["메르세데스-벤츠", "BMW", "아우디"] }
+      ],
+      "속담 & 사자성어": [
+        { q: "'가는 말이 고와야 ____ 말도 곱다' 빈칸에 알맞은 말은?", ans: "오는", wrong: ["가는", "듣는", "말하는"] },
+        { q: "'낮말은 새가 듣고 ____ 말은 쥐가 듣는다' 빈칸은?", ans: "밤", wrong: ["아침", "낮", "어둠"] },
+        { q: "'우물 안 ____' 우물 속에만 있어서 넓은 세상을 모른다는 뜻은?", ans: "개구리", wrong: ["올챙이", "붕어", "거북이"] },
+        { q: "'백지장도 맞들면 낫다'라는 속담의 의미는?", ans: "쉬운 일도 협동하면 더 쉽다", wrong: ["종이는 얇다", "혼자 하는 것이 빠르다", "종이를 아껴라"] }
+      ],
+      "IT & 코딩": [
+        { q: "웹 브라우저에서 동적인 동작과 이벤트를 처리할 때 쓰이는 프로그래밍 언어는?", ans: "JavaScript", wrong: ["Python", "C++", "HTML"] },
+        { q: "인공지능 챗봇의 대표 주자로 OpenAI가 개발한 생성형 AI는?", ans: "ChatGPT", wrong: ["Siri", "AlphaGo", "Bixby"] },
+        { q: "컴퓨터의 머리 역할을 담당하는 중앙처리장치의 약자는?", ans: "CPU", wrong: ["RAM", "SSD", "GPU"] }
+      ],
+      "클래식 음악": [
+        { q: "'운명 교향곡', '합창 교향곡'을 작곡한 청력을 잃은 천재 음악가는?", ans: "베토벤", wrong: ["모차르트", "바흐", "쇼팽"] },
+        { q: "'음악의 아버지'라 불리며 G선상의 아리아를 작곡한 인물은?", ans: "바흐", wrong: ["베토벤", "헨델", "비발디"] }
+      ],
+      "미술 & 명화": [
+        { q: "루브르 박물관에 소장되어 있으며 레오나르도 다빈치가 그린 명화는?", ans: "모나리자", wrong: ["최후의 만찬", "별이 빛나는 밤", "절규"] },
+        { q: "'별이 빛나는 밤', '해바라기'를 그린 네덜란드의 화가는?", ans: "빈센트 반 고흐", wrong: ["파블로 피카소", "클로드 모네", "살바도르 달리"] }
+      ],
+      "경제 & 주식": [
+        { q: "주식 시장에서 상승장을 뜻하는 동물 상징은?", ans: "황소 (Bull)", wrong: ["곰 (Bear)", "사자 (Lion)", "독수리 (Eagle)"] },
+        { q: "기업의 이익 중 일부를 주주들에게 나누어 주는 돈은?", ans: "배당금", wrong: ["원금", "수수료", "채권"] }
+      ],
+      "보드게임": [
+        { q: "주사위를 굴려 전 세계 도시의 부동산을 사서 통행료를 받는 한국의 대표 보드게임은?", ans: "부루마블", wrong: ["할리갈리", "루미큐브", "카탄"] },
+        { q: "같은 과일 5개가 되면 종을 먼저 치는 순발력 보드게임은?", ans: "할리갈리", wrong: ["다빈치코드", "클루", "젠가"] }
+      ],
+      "패션 & 브랜드": [
+        { q: "프랑스의 명품 브랜드로 'C' 모양이 서로 교차된 로고로 유명한 브랜드는?", ans: "샤넬 (Chanel)", wrong: ["루이비통", "구찌", "에르메스"] },
+        { q: "스포츠 브랜드 중 'Just Do It' 슬로건과 로고(Swoosh)로 유명한 브랜드는?", ans: "나이키 (Nike)", wrong: ["아디다스", "푸마", "뉴발란스"] }
+      ]
+    };
 
     const categories = [];
     const subjects = ["수학", "국어", "영어", "사회", "과학"];
@@ -609,44 +769,18 @@
       { name: "애니 & 웹툰", icon: "fa-tv" }, { name: "게임 & 이스포츠", icon: "fa-gamepad" },
       { name: "신조어 & 밈", icon: "fa-comments" }, { name: "영화 & OTT", icon: "fa-film" }
     ];
-    trends.forEach(t => categories.push({ id: t.name, title: t.name, icon: t.icon, type: "trend", subject: "일반" }));
+    trends.forEach(t => categories.push({ id: t.name, title: t.name, icon: t.icon, type: "trend", subject: "문화/트렌드" }));
 
     const hobbies = [
       "세계 수도", "세계 역사", "음식 & 맛집", "스포츠 & 축구", "동물 & 자연", "과학 & 우주", "자동차 & 탈것",
       "속담 & 사자성어", "IT & 코딩", "클래식 음악", "미술 & 명화", "경제 & 주식", "보드게임", "패션 & 브랜드"
     ];
-    hobbies.forEach(h => categories.push({ id: h, title: h, icon: "fa-brain", type: "hobby", subject: "상식" }));
-
-    const koreanQuizPool = [
-      { q: "다음 중 올바른 맞춤법은 무엇일까요?", ans: "돼라", wrong: ["되라", "되어라", "되에라"] },
-      { q: "다음 중 '어이없다'의 표준어는?", ans: "어처구니없다", wrong: ["어처구니있다", "어이있다", "어처구니"] },
-      { q: "다음 중 올바른 띄어쓰기는?", ans: "할 수 있다", wrong: ["할수있다", "할수 있다", "할 수있다"] },
-      { q: "다음 중 '깨끗이'의 올바른 표기는?", ans: "깨끗이", wrong: ["깨끗히", "깨끋이", "깨끗이서"] },
-      { q: "다음 중 '굳이'의 올바른 발음 표기는?", ans: "구지", wrong: ["굳이", "구티", "굳지"] }
-    ];
-
-    const englishQuizPool = [
-      { q: "다음 중 '사과'를 의미하는 영단어는?", ans: "Apple", wrong: ["Banana", "Cat", "Dog"] },
-      { q: "다음 중 '도서관'을 의미하는 영단어는?", ans: "Library", wrong: ["Bookstore", "School", "Hospital"] },
-      { q: "다음 중 '아름다운'을 의미하는 형용사는?", ans: "Beautiful", wrong: ["Ugly", "Dark", "Short"] },
-      { q: "다음 중 '성공하다'를 의미하는 동사는?", ans: "Succeed", wrong: ["Fail", "Sleep", "Walk"] },
-      { q: "다음 중 '지구'를 의미하는 영단어는?", ans: "Earth", wrong: ["Mars", "Venus", "Moon"] }
-    ];
-
-    const socialQuizPool = [
-      { q: "대한민국의 수도는 어디일까요?", ans: "서울", wrong: ["부산", "인천", "대구"] },
-      { q: "조선 왕조를 건국한 왕은 누구일까요?", ans: "태조 이성계", wrong: ["세종대왕", "태종 이방원", "정조"] },
-      { q: "삼국 시대의 세 나라에 해당하지 않는 국가는?", ans: "고려", wrong: ["고구려", "백제", "신라"] }
-    ];
-
-    const scienceQuizPool = [
-      { q: "식물이 빛을 이용해 양분을 만드는 작용은?", ans: "광합성", wrong: ["증산작용", "호흡작용", "소화작용"] },
-      { q: "태양계에서 가장 큰 행성은 무엇일까요?", ans: "목성", wrong: ["토성", "지구", "화성"] },
-      { q: "물(H2O)이 기체로 변한 상태를 무엇이라 하나요?", ans: "수증기", wrong: ["얼음", "이슬", "서리"] }
-    ];
+    hobbies.forEach(h => categories.push({ id: h, title: h, icon: "fa-brain", type: "hobby", subject: "상식/취미" }));
 
     function generateStageQuestions(cat, stageNum) {
       const qs = [];
+      const dbPool = knowledgeDB[cat.title] || [];
+
       for (let i = 1; i <= 5; i++) {
         let questionText = '';
         let correctAnswer = '';
@@ -681,43 +815,30 @@
           }
 
           questionText = `다음 연산의 값은? : ${a} ${opSymbol} ${b} = ?`;
-
           const numAns = parseInt(correctAnswer, 10);
-          const wrong1 = `${numAns + 2}`;
-          const wrong2 = `${numAns - 1 <= 0 ? numAns + 3 : numAns - 1}`;
-          const wrong3 = `${numAns + 5}`;
-          
-          wrongOptions = [wrong1, wrong2, wrong3];
+          wrongOptions = [`${numAns + 2}`, `${numAns - 1 <= 0 ? numAns + 3 : numAns - 1}`, `${numAns + 5}`];
           hintText = `이 연산의 정확한 결과는 ${correctAnswer} 입니다.`;
-        } else if (cat.subject === "국어") {
-          const quizItem = koreanQuizPool[(i - 1) % koreanQuizPool.length];
-          questionText = `${quizItem.q} (${stageNum}단계-${i})`;
+
+        } else if (dbPool.length > 0) {
+          // Fetch from realistic Knowledge DB
+          const itemIndex = ((stageNum - 1) * 5 + (i - 1)) % dbPool.length;
+          const quizItem = dbPool[itemIndex];
+
+          questionText = quizItem.q;
           correctAnswer = quizItem.ans;
           wrongOptions = [...quizItem.wrong];
-          hintText = `정답은 "${correctAnswer}" 입니다.`;
-        } else if (cat.subject === "영어") {
-          const quizItem = englishQuizPool[(i - 1) % englishQuizPool.length];
-          questionText = `${quizItem.q} (${stageNum}단계-${i})`;
-          correctAnswer = quizItem.ans;
-          wrongOptions = [...quizItem.wrong];
-          hintText = `정답은 "${correctAnswer}" 입니다.`;
-        } else if (cat.subject === "사회") {
-          const quizItem = socialQuizPool[(i - 1) % socialQuizPool.length];
-          questionText = `${quizItem.q} (${stageNum}단계-${i})`;
-          correctAnswer = quizItem.ans;
-          wrongOptions = [...quizItem.wrong];
-          hintText = `정답은 "${correctAnswer}" 입니다.`;
-        } else if (cat.subject === "과학") {
-          const quizItem = scienceQuizPool[(i - 1) % scienceQuizPool.length];
-          questionText = `${quizItem.q} (${stageNum}단계-${i})`;
-          correctAnswer = quizItem.ans;
-          wrongOptions = [...quizItem.wrong];
-          hintText = `정답은 "${correctAnswer}" 입니다.`;
+          hintText = `정답의 힌트는 "${correctAnswer.substring(0, 2)}..." 입니다.`;
+
         } else {
-          questionText = `[${cat.title}] Stage ${stageNum} - ${i}번 지식 퀴즈입니다.`;
-          correctAnswer = `정답 ${i}`;
-          wrongOptions = [`오답 A`, `오답 B`, `오답 C`];
-          hintText = `정답 선택지는 "${correctAnswer}" 입니다.`;
+          // Dynamic Intelligent Fallback for non-indexed categories
+          questionText = `'${cat.title}' 지식 탐구: Stage ${stageNum} - Q${i}. 다음 중 올바른 설명 또는 핵심 요소는 무엇일까요?`;
+          correctAnswer = `${cat.title} 관련 대표 핵심 개념 ${i}`;
+          wrongOptions = [
+            `${cat.title} 관련 일반적 개념 A`,
+            `${cat.title} 관련 잘못된 정보 B`,
+            `${cat.title} 관련 연관 없는 설명 C`
+          ];
+          hintText = `정답은 "${correctAnswer}" 입니다.`;
         }
 
         const allOptions = [correctAnswer, ...wrongOptions];
@@ -877,7 +998,7 @@
 
     function checkAnswer(selected, correct, btn) {
       clearInterval(timerInterval);
-      const isCorrect = selected === correct;
+      const isCorrect = selected == correct;
 
       if (isCorrect) {
         btn.classList.add('correct');
@@ -903,17 +1024,17 @@
 
     function useItem(type) {
       if (gameState.inventory[type] <= 0) {
-        alert("아이템이 부족합니다! 상점에서 구매하세요.");
+        showModal("아이템이 부족합니다! 상점에서 구매하세요.");
         return;
       }
       gameState.inventory[type]--;
       if (type === 'time') {
         startTimer();
       } else if (type === 'hint') {
-        alert("힌트: " + currentQuestions[currentQIdx].hint);
+        showModal("💡 " + currentQuestions[currentQIdx].hint);
       } else if (type === 'double') {
         activeMultiplier = 2;
-        alert("이번 문제 정답 점수가 2배가 됩니다!");
+        showModal("⚡ 이번 문제 정답 점수가 2배가 됩니다!");
       }
       saveState();
     }
@@ -946,13 +1067,13 @@
 
     function buyItem(type, price) {
       if (gameState.points < price) {
-        alert("포인트가 부족합니다!");
+        showModal("포인트가 부족합니다!");
         return;
       }
       gameState.points -= price;
       gameState.inventory[type]++;
       saveState();
-      alert("구매 완료!");
+      showModal("구매가 완료되었습니다!");
     }
 
     const availableTitles = [
