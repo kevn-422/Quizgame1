@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Super Quiz Kingdom - 100 Categories Edition</title>
+  
   <!-- Google Fonts & Font Awesome Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  
+
   <style>
     :root {
       --primary: #6366f1;
@@ -43,7 +44,6 @@
       padding: 16px;
     }
 
-    /* Top Navigation Bar */
     .header-bar {
       width: 100%;
       max-width: 1100px;
@@ -56,6 +56,8 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
       margin-bottom: 20px;
       border: 1px solid rgba(255,255,255,0.08);
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
     .logo {
@@ -72,10 +74,11 @@
 
     .user-stats {
       display: flex;
-      gap: 16px;
+      gap: 12px;
       align-items: center;
       font-weight: 700;
       font-size: 0.95rem;
+      flex-wrap: wrap;
     }
 
     .stat-badge {
@@ -125,7 +128,6 @@
       background: #475569;
     }
 
-    /* Main Container Views */
     .container {
       width: 100%;
       max-width: 1100px;
@@ -149,7 +151,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Search & Filter Controls */
     .controls-bar {
       display: flex;
       gap: 12px;
@@ -185,7 +186,6 @@
       border-color: var(--primary);
     }
 
-    /* Grid Layout for Categories */
     .category-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -239,7 +239,6 @@
       gap: 8px;
     }
 
-    /* Stage Selection View */
     .stage-header {
       display: flex;
       align-items: center;
@@ -263,11 +262,18 @@
       gap: 12px;
       border: 1px solid rgba(255,255,255,0.1);
       position: relative;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .stage-card:not(.locked):hover {
+      transform: translateY(-4px);
     }
 
     .stage-card.locked {
       opacity: 0.5;
       filter: grayscale(0.8);
+      cursor: not-allowed;
     }
 
     .stage-number {
@@ -283,7 +289,6 @@
       gap: 4px;
     }
 
-    /* Gameplay Screen */
     .quiz-card {
       background: var(--bg-card);
       border-radius: var(--radius);
@@ -371,6 +376,7 @@
       gap: 10px;
       margin-top: 20px;
       justify-content: center;
+      flex-wrap: wrap;
     }
 
     .item-use-btn {
@@ -387,7 +393,6 @@
       gap: 6px;
     }
 
-    /* Modal / Shop / Titles */
     .shop-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -417,7 +422,6 @@
 </head>
 <body>
 
-  <!-- Top Header Navigation -->
   <div class="header-bar">
     <div class="logo" onclick="showView('category-view')">
       <i class="fa-solid fa-crown"></i> SUPER QUIZ KINGDOM
@@ -435,7 +439,6 @@
 
   <div class="container">
     
-    <!-- 1. Category View -->
     <div id="category-view" class="view active">
       <div class="controls-bar">
         <input type="text" id="search-bar" class="search-input" placeholder="퀴즈 카테고리 검색 (예: 초1, 유튜버, 철도)..." oninput="filterCategories()">
@@ -450,7 +453,6 @@
       </div>
     </div>
 
-    <!-- 2. Stage Select View -->
     <div id="stage-view" class="view">
       <div class="stage-header">
         <button class="btn btn-secondary" onclick="showView('category-view')"><i class="fa-solid fa-arrow-left"></i> 뒤로가기</button>
@@ -461,7 +463,6 @@
       </div>
     </div>
 
-    <!-- 3. Gameplay View -->
     <div id="quiz-view" class="view">
       <div class="quiz-card" id="quiz-card">
         <div class="quiz-progress-bar">
@@ -483,7 +484,6 @@
       </div>
     </div>
 
-    <!-- 4. Result View -->
     <div id="result-view" class="view">
       <div class="quiz-card" style="text-align: center;">
         <h2 style="font-size: 2rem; margin-bottom: 12px;" id="result-title">STAGE CLEAR!</h2>
@@ -496,7 +496,6 @@
       </div>
     </div>
 
-    <!-- 5. Shop View -->
     <div id="shop-view" class="view">
       <div class="stage-header">
         <button class="btn btn-secondary" onclick="showView('category-view')"><i class="fa-solid fa-arrow-left"></i> 메인으로</button>
@@ -505,7 +504,7 @@
       <div class="shop-grid">
         <div class="shop-item">
           <h3><i class="fa-solid fa-clock" style="color:#38bdf8;"></i> 시간 연장 (+10초)</h3>
-          <p style="color: var(--text-sub); font-size: 0.9rem;">퀴즈 타이머 제한 시간을 10초 늘려줍니다.</p>
+          <p style="color: var(--text-sub); font-size: 0.9rem;">퀴즈 타이머 제한 시간을 리셋하고 여유를 제공합니다.</p>
           <button class="btn" onclick="buyItem('time', 100)">100 P 구매</button>
         </div>
         <div class="shop-item">
@@ -521,7 +520,6 @@
       </div>
     </div>
 
-    <!-- 6. Titles View -->
     <div id="title-view" class="view">
       <div class="stage-header">
         <button class="btn btn-secondary" onclick="showView('category-view')"><i class="fa-solid fa-arrow-left"></i> 메인으로</button>
@@ -535,9 +533,6 @@
   </div>
 
   <script>
-    /* ===================================================
-       1. GAME DATA & STATE MANAGEMENT
-    =================================================== */
     let gameState = {
       points: 100,
       stars: 0,
@@ -547,7 +542,6 @@
       stageProgress: {}
     };
 
-    // Load LocalStorage
     if (localStorage.getItem('quiz_kingdom_state')) {
       try {
         gameState = JSON.parse(localStorage.getItem('quiz_kingdom_state'));
@@ -559,7 +553,6 @@
       updateHeaderUI();
     }
 
-    // Audio SFX Generator (Web Audio API)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(type) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -584,11 +577,9 @@
       }
     }
 
-    /* Generator for 100 Categories */
     const categories = [];
     const subjects = ["수학", "국어", "영어"];
     
-    // Academic (Grade 1 to 12)
     const grades = ["초등 1학년", "초등 2학년", "초등 3학년", "초등 4학년", "초등 5학년", "초등 6학년", "중학교 1학년", "중학교 2학년", "중학교 3학년", "고등학교 1학년", "고등학교 2학년", "고등학교 3학년"];
     grades.forEach((g, idx) => {
       subjects.forEach(sub => {
@@ -602,7 +593,6 @@
       });
     });
 
-    // Pop & Trend
     const trends = [
       { name: "유튜버 / 크리에이터", icon: "fa-youtube" }, { name: "정치인 & 역사 리더", icon: "fa-landmark" },
       { name: "철도 & 지하철", icon: "fa-train-subway" }, { name: "아이돌 / K-POP", icon: "fa-music" },
@@ -611,7 +601,6 @@
     ];
     trends.forEach(t => categories.push({ id: t.name, title: t.name, icon: t.icon, type: "trend", subject: "일반" }));
 
-    // General & Hobbies (Fill up to 100 categories)
     const hobbies = [
       "세계 수도", "세계 역사", "음식 & 맛집", "스포츠 & 축구", "동물 & 자연", "과학 & 우주", "자동차 & 탈것",
       "속담 & 사자성어", "IT & 코딩", "클래식 음악", "미술 & 명화", "경제 & 주식", "보드게임", "패션 & 브랜드",
@@ -621,39 +610,71 @@
     ];
     hobbies.forEach(h => categories.push({ id: h, title: h, icon: "fa-brain", type: "hobby", subject: "상식" }));
 
-    /* Demo Quiz Generator Logic */
+    const koreanQuizPool = [
+      { q: "다음 중 올바른 맞춤법은 무엇일까요?", ans: "돼라", wrong: ["되라", "되어라", "되에라"] },
+      { q: "다음 중 '어이없다'의 표준어는?", ans: "어처구니없다", wrong: ["어처구니있다", "어이있다", "어처구니"] },
+      { q: "다음 중 올바른 띄어쓰기는?", ans: "할 수 있다", wrong: ["할수있다", "할수 있다", "할 수있다"] },
+      { q: "다음 중 '깨끗이'의 올바른 표기는?", ans: "깨끗이", wrong: ["깨끗히", "깨끋이", "깨끗이서"] },
+      { q: "다음 중 '굳이'의 올바른 발음 표기는?", ans: "구지", wrong: ["굳이", "구티", "굳지"] }
+    ];
+
+    const englishQuizPool = [
+      { q: "다음 중 '사과'를 의미하는 영단어는?", ans: "Apple", wrong: ["Banana", "Cat", "Dog"] },
+      { q: "다음 중 '도서관'을 의미하는 영단어는?", ans: "Library", wrong: ["Bookstore", "School", "Hospital"] },
+      { q: "다음 중 '아름다운'을 의미하는 형용사는?", ans: "Beautiful", wrong: ["Ugly", "Dark", "Short"] },
+      { q: "다음 중 '성공하다'를 의미하는 동사는?", ans: "Succeed", wrong: ["Fail", "Sleep", "Walk"] },
+      { q: "다음 중 '지구'를 의미하는 영단어는?", ans: "Earth", wrong: ["Mars", "Venus", "Moon"] }
+    ];
+
     function generateStageQuestions(cat, stageNum) {
       const qs = [];
       for (let i = 1; i <= 5; i++) {
         let questionText = `${cat.title} (Stage ${stageNum}) ${i}번 문제입니다.`;
-        let options = ["정답 옵션", "오답 A", "오답 B", "오답 C"];
-        
+        let correctAnswer = '';
+        let wrongOptions = [];
+        let hintText = '';
+
         if (cat.subject === "수학") {
           const a = stageNum * 7 + i;
           const b = stageNum * 3 + i;
+          const sum = a + b;
+          
           questionText = `다음 연산의 값은? : ${a} + ${b} = ?`;
-          options = [`${a + b}`, `${a + b + 2}`, `${a + b - 3}`, `${a * b}`];
+          correctAnswer = `${sum}`;
+          wrongOptions = [`${sum + 2}`, `${sum - 3}`, `${sum + 5}`];
+          hintText = `두 수의 합은 ${sum} 입니다.`;
         } else if (cat.subject === "국어") {
-          questionText = `다음 중 올바른 맞춤법은 무엇일까요? (${stageNum}단계)`;
-          options = ["되어라", "되어라", "되라", "돼라"];
+          const quizItem = koreanQuizPool[(i - 1) % koreanQuizPool.length];
+          questionText = `${quizItem.q} (${stageNum}단계-${i})`;
+          correctAnswer = quizItem.ans;
+          wrongOptions = [...quizItem.wrong];
+          hintText = `정답은 "${correctAnswer}" 입니다.`;
         } else if (cat.subject === "영어") {
-          questionText = `다음 중 '사과'를 의미하는 영단어는?`;
-          options = ["Apple", "Banana", "Cat", "Dog"];
+          const quizItem = englishQuizPool[(i - 1) % englishQuizPool.length];
+          questionText = `${quizItem.q} (${stageNum}단계-${i})`;
+          correctAnswer = quizItem.ans;
+          wrongOptions = [...quizItem.wrong];
+          hintText = `정답은 "${correctAnswer}" 입니다.`;
+        } else {
+          questionText = `[${cat.title}] Stage ${stageNum} - ${i}번 지식 퀴즈입니다.`;
+          correctAnswer = `올바른 답 ${i}`;
+          wrongOptions = [`보기 A`, `보기 B`, `보기 C`];
+          hintText = `정답 선택지는 "${correctAnswer}" 입니다.`;
         }
+
+        const allOptions = [correctAnswer, ...wrongOptions];
+        allOptions.sort(() => Math.random() - 0.5);
 
         qs.push({
           question: questionText,
-          options: options.sort(() => Math.random() - 0.5),
-          answer: options[0],
-          hint: "첫 번째 선택지가 올바른 정답의 가이드입니다."
+          options: allOptions,
+          answer: correctAnswer,
+          hint: hintText
         });
       }
       return qs;
     }
 
-    /* ===================================================
-       2. UI & VIEW CONTROLLER
-    =================================================== */
     let currentFilter = 'all';
     let currentCat = null;
     let currentStage = 1;
@@ -745,9 +766,6 @@
       }
     }
 
-    /* ===================================================
-       3. GAMEPLAY ENGINE
-    =================================================== */
     function startStage(stageNum) {
       currentStage = stageNum;
       currentQuestions = generateStageQuestions(currentCat, stageNum);
@@ -832,7 +850,7 @@
       }
       gameState.inventory[type]--;
       if (type === 'time') {
-        startTimer(); // Reset timer
+        startTimer();
       } else if (type === 'hint') {
         alert("힌트: " + currentQuestions[currentQIdx].hint);
       } else if (type === 'double') {
@@ -868,9 +886,6 @@
       showView('result-view');
     }
 
-    /* ===================================================
-       4. SHOP & TITLES SYSTEM
-    =================================================== */
     function buyItem(type, price) {
       if (gameState.points < price) {
         alert("포인트가 부족합니다!");
@@ -913,9 +928,11 @@
       renderTitles();
     }
 
-    // Initialize App
-    renderCategories();
-    updateHeaderUI();
+    // App Initialization
+    window.onload = () => {
+      renderCategories();
+      updateHeaderUI();
+    };
   </script>
 </body>
 </html>
