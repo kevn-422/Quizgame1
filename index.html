@@ -18,9 +18,35 @@
       font-family: 'Noto Sans KR', sans-serif;
       background-color: #050811;
       color: #f8fafc;
-      overflow: hidden;
-      height: 100vh;
-      width: 100vw;
+      overflow-x: hidden;
+      overflow-y: auto;
+      min-height: 100vh;
+      height: auto;
+      width: 100%;
+    }
+
+    /* 노선 선택 화면: 경유지가 많아져도 내부에서 세로 스크롤 가능 */
+    #canvasContainer {
+      flex: none;
+      min-height: 78vh;
+    }
+
+    #startOverlay {
+      overflow-y: auto;
+      overflow-x: hidden;
+      justify-content: flex-start !important;
+      gap: 1rem;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #startOverlay > * {
+      flex-shrink: 0;
+    }
+
+    #routeListContainer {
+      min-height: 0;
+      overflow: visible;
     }
 
     .font-arcade {
@@ -148,7 +174,7 @@
             <h1 class="text-lg md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400">
               전국 고속도로 차 피하기 (PC 가로 화면 모드)
             </h1>
-            <p class="text-xs text-slate-400">총 8개 노선(제주 해상대교, 양양, 청주 포함)과 10종의 차량을 즐겨보세요!</p>
+            <p class="text-xs text-slate-400">총 30개 노선과 10종의 차량을 즐겨보세요!</p>
           </div>
         </div>
 
@@ -167,19 +193,19 @@
       </div>
 
       <!-- Main Selection Body: Route Selector & Equipped Car Quick Card -->
-      <div class="grid grid-cols-12 gap-4 my-auto py-2">
-        <!-- Left: Route List (8 cols) -->
-        <div class="col-span-8 flex flex-col gap-2">
+      <div class="grid grid-cols-12 gap-4 py-2 items-start">
+        <!-- Left: Route List (15 routes) -->
+        <div class="col-span-12 flex flex-col gap-2">
           <div class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <i class="fa-solid fa-route text-cyan-400"></i> 주행 노선 선택 (총 8개 주요 코스)
+            <i class="fa-solid fa-route text-cyan-400"></i> 주행 노선 선택 (총 25개 주요 코스 · 전체 경유지 표시)
           </div>
-          <div id="routeListContainer" class="space-y-2 max-h-[220px] overflow-y-auto pr-2">
+          <div id="routeListContainer" class="flex flex-col gap-3 w-full">
             <!-- Dynamic Route Cards -->
           </div>
         </div>
 
         <!-- Right: Current Vehicle & Keyboard Control Banner (4 cols) -->
-        <div class="col-span-4 flex flex-col justify-between gap-3">
+        <div class="col-span-12 grid grid-cols-1 md:grid-cols-2 gap-3">
           <!-- Equipped Vehicle Info Card -->
           <div class="bg-slate-900/90 border border-slate-700/80 p-3.5 rounded-2xl flex flex-col gap-2 shadow-inner">
             <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">현재 선택된 차량</div>
@@ -333,7 +359,7 @@
   </main>
 
   <script>
-    // --- 1. ROUTE PRESETS (11 ROUTES, 10 WAYPOINTS EACH) ---
+    // --- 1. ROUTE PRESETS (30 ROUTES) ---
     const ROUTE_DATA = [
       {
         id: 'incheon',
@@ -528,6 +554,313 @@
           { name: '전주', dist: 235 },
           { name: '정읍', dist: 265 },
           { name: '광주', dist: 300 }
+        ]
+      },
+      {
+        id: 'pohang',
+        title: '서울 ➔ 포항',
+        totalDist: 360,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '성남', dist: 25 },
+          { name: '이천', dist: 65 },
+          { name: '충주', dist: 110 },
+          { name: '문경', dist: 155 },
+          { name: '상주', dist: 195 },
+          { name: '김천', dist: 235 },
+          { name: '대구', dist: 285 },
+          { name: '영천', dist: 325 },
+          { name: '포항', dist: 360 }
+        ]
+      },
+      {
+        id: 'gangneung',
+        title: '서울 ➔ 강릉',
+        totalDist: 220,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '구리', dist: 20 },
+          { name: '남양주', dist: 35 },
+          { name: '양평', dist: 65 },
+          { name: '홍천', dist: 100 },
+          { name: '횡성', dist: 130 },
+          { name: '평창', dist: 165 },
+          { name: '대관령', dist: 190 },
+          { name: '강릉IC', dist: 205 },
+          { name: '강릉', dist: 220 }
+        ]
+      },
+      {
+        id: 'jeonju',
+        title: '서울 ➔ 전주',
+        totalDist: 245,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '수원', dist: 30 },
+          { name: '평택', dist: 60 },
+          { name: '천안', dist: 85 },
+          { name: '공주', dist: 120 },
+          { name: '논산', dist: 150 },
+          { name: '익산', dist: 185 },
+          { name: '삼례', dist: 210 },
+          { name: '전주IC', dist: 230 },
+          { name: '전주', dist: 245 }
+        ]
+      },
+      {
+        id: 'yeosu',
+        title: '서울 ➔ 여수',
+        totalDist: 380,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '수원', dist: 35 },
+          { name: '천안', dist: 80 },
+          { name: '대전', dist: 135 },
+          { name: '논산', dist: 180 },
+          { name: '전주', dist: 225 },
+          { name: '남원', dist: 270 },
+          { name: '순천', dist: 325 },
+          { name: '여수IC', dist: 360 },
+          { name: '여수', dist: 380 }
+        ]
+      },
+      {
+        id: 'chuncheon',
+        title: '서울 ➔ 춘천',
+        totalDist: 105,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '구리', dist: 15 },
+          { name: '남양주', dist: 28 },
+          { name: '마석', dist: 42 },
+          { name: '가평', dist: 62 },
+          { name: '청평', dist: 72 },
+          { name: '강촌', dist: 88 },
+          { name: '춘천IC', dist: 98 },
+          { name: '춘천', dist: 105 }
+        ]
+      },
+      {
+        id: 'daejeon',
+        title: '서울 ➔ 대전',
+        totalDist: 165,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '성남', dist: 20 },
+          { name: '오산', dist: 48 },
+          { name: '평택', dist: 65 },
+          { name: '천안', dist: 88 },
+          { name: '공주', dist: 125 },
+          { name: '세종', dist: 145 },
+          { name: '유성', dist: 157 },
+          { name: '대전', dist: 165 }
+        ]
+      },
+      {
+        id: 'mokpo',
+        title: '서울 ➔ 목포',
+        totalDist: 360,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '수원', dist: 35 },
+          { name: '평택', dist: 65 },
+          { name: '천안', dist: 90 },
+          { name: '공주', dist: 135 },
+          { name: '논산', dist: 170 },
+          { name: '익산', dist: 215 },
+          { name: '광주', dist: 285 },
+          { name: '나주', dist: 325 },
+          { name: '무안', dist: 345 },
+          { name: '목포', dist: 360 }
+        ]
+      },
+      {
+        id: 'ulsan',
+        title: '서울 ➔ 울산',
+        totalDist: 410,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '수원', dist: 35 },
+          { name: '천안', dist: 80 },
+          { name: '대전', dist: 145 },
+          { name: '김천', dist: 215 },
+          { name: '구미', dist: 255 },
+          { name: '대구', dist: 300 },
+          { name: '영천', dist: 340 },
+          { name: '경주', dist: 375 },
+          { name: '언양', dist: 395 },
+          { name: '울산', dist: 410 }
+        ]
+      },
+      {
+        id: 'sokcho',
+        title: '서울 ➔ 속초',
+        totalDist: 205,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '구리', dist: 18 },
+          { name: '남양주', dist: 32 },
+          { name: '가평', dist: 58 },
+          { name: '춘천', dist: 85 },
+          { name: '홍천', dist: 115 },
+          { name: '인제', dist: 150 },
+          { name: '미시령', dist: 175 },
+          { name: '속초IC', dist: 195 },
+          { name: '속초', dist: 205 }
+        ]
+      },
+      {
+        id: 'andong',
+        title: '서울 ➔ 안동',
+        totalDist: 270,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '성남', dist: 22 },
+          { name: '이천', dist: 58 },
+          { name: '충주', dist: 105 },
+          { name: '문경', dist: 150 },
+          { name: '상주', dist: 190 },
+          { name: '의성', dist: 235 },
+          { name: '안동IC', dist: 260 },
+          { name: '안동', dist: 270 }
+        ]
+      },
+      {
+        id: 'gunsan',
+        title: '서울 ➔ 군산',
+        totalDist: 230,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '수원', dist: 32 },
+          { name: '평택', dist: 62 },
+          { name: '천안', dist: 88 },
+          { name: '공주', dist: 125 },
+          { name: '논산', dist: 158 },
+          { name: '익산', dist: 195 },
+          { name: '군산IC', dist: 220 },
+          { name: '군산', dist: 230 }
+        ]
+      },
+      {
+        id: 'pocheon',
+        title: '서울 ➔ 포천',
+        totalDist: 65,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '의정부', dist: 18 },
+          { name: '양주', dist: 32 },
+          { name: '송우리', dist: 45 },
+          { name: '포천IC', dist: 58 },
+          { name: '포천', dist: 65 }
+        ]
+      },
+      {
+        id: 'pyeongtaek',
+        title: '서울 ➔ 평택',
+        totalDist: 85,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '과천', dist: 18 },
+          { name: '의왕', dist: 32 },
+          { name: '수원', dist: 48 },
+          { name: '오산', dist: 65 },
+          { name: '송탄', dist: 76 },
+          { name: '평택', dist: 85 }
+        ]
+      },
+      {
+        id: 'namhae',
+        title: '서울 ➔ 남해',
+        totalDist: 410,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '수원', dist: 35 },
+          { name: '천안', dist: 80 },
+          { name: '대전', dist: 145 },
+          { name: '진주', dist: 330 },
+          { name: '사천', dist: 365 },
+          { name: '창선·삼천포대교', dist: 390 },
+          { name: '남해', dist: 410 }
+        ]
+      },
+      {
+        id: 'ganghwa',
+        title: '서울 ➔ 강화도 (해상대교)',
+        totalDist: 75,
+        isSeaBridge: true,
+        seaBridgeStartDist: 55,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '김포', dist: 30 },
+          { name: '양촌', dist: 42 },
+          { name: '강화대교 진입', dist: 55 },
+          { name: '강화대교', dist: 62 },
+          { name: '강화읍', dist: 70 },
+          { name: '강화도', dist: 75 }
+        ]
+      },
+      {
+        id: 'gyodong',
+        title: '서울 ➔ 교동도 (해상대교)',
+        totalDist: 95,
+        isSeaBridge: true,
+        seaBridgeStartDist: 72,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '김포', dist: 30 },
+          { name: '강화읍', dist: 65 },
+          { name: '교동대교 진입', dist: 72 },
+          { name: '교동대교', dist: 82 },
+          { name: '교동면', dist: 90 },
+          { name: '교동도', dist: 95 }
+        ]
+      },
+      {
+        id: 'yeongjong',
+        title: '서울 ➔ 영종도 (해상대교)',
+        totalDist: 65,
+        isSeaBridge: true,
+        seaBridgeStartDist: 42,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '부천', dist: 22 },
+          { name: '인천', dist: 35 },
+          { name: '영종대교 진입', dist: 42 },
+          { name: '영종대교', dist: 52 },
+          { name: '운서동', dist: 60 },
+          { name: '영종도', dist: 65 }
+        ]
+      },
+      {
+        id: 'daebudo',
+        title: '서울 ➔ 대부도 (해상대교)',
+        totalDist: 90,
+        isSeaBridge: true,
+        seaBridgeStartDist: 65,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '안산', dist: 42 },
+          { name: '시화호', dist: 58 },
+          { name: '시화방조제', dist: 65 },
+          { name: '시화나래휴게소', dist: 75 },
+          { name: '방아머리선착장', dist: 85 },
+          { name: '대부도', dist: 90 }
+        ]
+      },
+      {
+        id: 'seonjaedo',
+        title: '서울 ➔ 선재도 (해상대교)',
+        totalDist: 105,
+        isSeaBridge: true,
+        seaBridgeStartDist: 78,
+        waypoints: [
+          { name: '서울', dist: 0 },
+          { name: '안산', dist: 42 },
+          { name: '대부도', dist: 75 },
+          { name: '선재대교 진입', dist: 78 },
+          { name: '선재대교', dist: 88 },
+          { name: '선재마을', dist: 98 },
+          { name: '선재도', dist: 105 }
         ]
       }
     ];
@@ -877,28 +1210,30 @@
       ROUTE_DATA.forEach((route, idx) => {
         const isSelected = idx === selectedRouteIndex;
         const card = document.createElement('div');
-        card.className = `p-2.5 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${
+        card.className = `p-3 rounded-xl border transition-all cursor-pointer flex flex-col gap-2 w-full ${
           isSelected 
             ? 'bg-slate-800/90 border-cyan-400 shadow-md ring-2 ring-cyan-400/30' 
             : 'bg-slate-900/60 border-slate-800 hover:bg-slate-800/50'
         }`;
         
-        const waypointsText = route.waypoints.map(w => w.name).join(' ➔ ');
+        const waypointsText = route.waypoints.map((w, i) => `${i + 1}. ${w.name} (${w.dist}km)`).join('  →  ');
 
         card.innerHTML = `
-          <div class="flex flex-col gap-0.5 overflow-hidden pr-2">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-xs md:text-sm text-white">${route.title}</span>
+          <div class="flex flex-col gap-2 w-full min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-bold text-sm md:text-base text-white">${route.title}</span>
               <span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full font-arcade">${route.totalDist}km</span>
-              ${route.isSeaBridge ? '<span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded">해상대교</span>' : ''}
+              <span class="text-[10px] text-slate-400">경유지 ${route.waypoints.length}곳</span>
+              ${route.isSeaBridge ? '<span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded">해상대교</span>' : ''}
+              <span class="ml-auto text-lg ${isSelected ? 'text-cyan-400' : 'text-slate-600'}">
+                <i class="fa-solid ${isSelected ? 'fa-circle-check' : 'fa-circle'}"></i>
+              </span>
             </div>
-            <div class="text-[10px] text-slate-400 truncate w-full" title="${waypointsText}">
-              ${waypointsText}
+            <div class="text-xs leading-6 text-slate-300 whitespace-normal break-words" title="${waypointsText}">
+              ${route.waypoints.map((w, i) => `<span class="inline-block mr-1"><span class="text-cyan-400 font-bold">${i + 1}.</span> ${w.name} <span class="text-slate-500">(${w.dist}km)</span></span>${i < route.waypoints.length - 1 ? '<span class="text-amber-400 mx-1">→</span>' : ''}`).join('')}
             </div>
           </div>
-          <div class="text-lg ${isSelected ? 'text-cyan-400' : 'text-slate-600'}">
-            <i class="fa-solid ${isSelected ? 'fa-circle-check' : 'fa-circle'}"></i>
-          </div>
+          <div class="hidden"></div>
         `;
 
         card.addEventListener('click', () => {
